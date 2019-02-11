@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The Loki Project
+// Copyright (c)      2018, The SevaBit Project
 //
 // All rights reserved.
 //
@@ -28,7 +28,7 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef _WIN32
- #define __STDC_FORMAT_MACROS // NOTE(loki): Explicitly define the PRIu64 macro on Mingw
+ #define __STDC_FORMAT_MACROS // NOTE(sevabit): Explicitly define the PRIu64 macro on Mingw
 #endif
 
 #include <boost/range/adaptor/transformed.hpp>
@@ -48,8 +48,8 @@
 #include "wallet/ringdb.h"
 #include "version.h"
 
-#undef LOKI_DEFAULT_LOG_CATEGORY
-#define LOKI_DEFAULT_LOG_CATEGORY "bcutil"
+#undef SEVABIT_DEFAULT_LOG_CATEGORY
+#define SEVABIT_DEFAULT_LOG_CATEGORY "bcutil"
 
 namespace po = boost::program_options;
 using namespace epee;
@@ -139,7 +139,7 @@ static bool parse_db_sync_mode(std::string db_sync_mode)
 static std::string get_default_db_path()
 {
   boost::filesystem::path dir = tools::get_default_data_dir();
-  // remove .loki, replace with .shared-ringdb
+  // remove .sevabit, replace with .shared-ringdb
   dir = dir.remove_filename();
   dir /= ".shared-ringdb";
   return dir.string();
@@ -1034,7 +1034,7 @@ int main(int argc, char* argv[])
   const command_line::arg_descriptor<bool> arg_rct_only  = {"rct-only", "Only work on ringCT outputs", false};
   const command_line::arg_descriptor<bool> arg_check_subsets  = {"check-subsets", "Check ring subsets (very expensive)", false};
   const command_line::arg_descriptor<bool> arg_verbose  = {"verbose", "Verbose output)", false};
-  const command_line::arg_descriptor<std::vector<std::string> > arg_inputs = {"inputs", "Path to Loki DB, and path to any fork DBs"};
+  const command_line::arg_descriptor<std::vector<std::string> > arg_inputs = {"inputs", "Path to SevaBit DB, and path to any fork DBs"};
   const command_line::arg_descriptor<std::string> arg_db_sync_mode = {
     "db-sync-mode"
   , "Specify sync option, using format [safe|fast|fastest]:[nrecords_per_sync]." 
@@ -1076,12 +1076,12 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "Loki '" << LOKI_RELEASE_NAME << "' (v" << LOKI_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "SevaBit '" << SEVABIT_RELEASE_NAME << "' (v" << SEVABIT_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }
 
-  mlog_configure(mlog_get_default_log_path("loki-blockchain-find-spent-outputs.log"), true);
+  mlog_configure(mlog_get_default_log_path("sevabit-blockchain-find-spent-outputs.log"), true);
   if (!command_line::is_arg_defaulted(vm, arg_log_level))
     mlog_set_log(command_line::get_arg(vm, arg_log_level).c_str());
   else
@@ -1128,7 +1128,7 @@ int main(int argc, char* argv[])
       Blockchain m_blockchain;
       tx_memory_pool m_mempool;
       service_nodes::service_node_list m_service_node_list;
-      loki::deregister_vote_pool m_deregister_vote_pool;
+      sevabit::deregister_vote_pool m_deregister_vote_pool;
       BlockchainObjects() :
         m_blockchain(m_mempool, m_service_node_list, m_deregister_vote_pool),
         m_service_node_list(m_blockchain),

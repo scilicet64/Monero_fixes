@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The Loki Project
+// Copyright (c)      2018, The SevaBit Project
 // 
 // All rights reserved.
 // 
@@ -46,8 +46,8 @@ using namespace epee;
 #include "cryptonote_basic/verification_context.h"
 #include "cryptonote_core/service_node_deregister.h"
 
-#undef LOKI_DEFAULT_LOG_CATEGORY
-#define LOKI_DEFAULT_LOG_CATEGORY "cn"
+#undef SEVABIT_DEFAULT_LOG_CATEGORY
+#define SEVABIT_DEFAULT_LOG_CATEGORY "cn"
 
 #define ENCRYPTED_PAYMENT_ID_TAIL 0x8d
 
@@ -1057,7 +1057,7 @@ namespace cryptonote
     switch (decimal_point)
     {
       case 9:
-        return "loki";
+        return "sevabit";
       case 6:
         return "megarok";
       case 3:
@@ -1109,7 +1109,7 @@ namespace cryptonote
     return buf;
   }
   //---------------------------------------------------------------
-  char const *print_vote_verification_context(vote_verification_context const &vvc, loki::service_node_deregister::vote const *vote)
+  char const *print_vote_verification_context(vote_verification_context const &vvc, sevabit::service_node_deregister::vote const *vote)
   {
       static char buf[1024];
       buf[0] = 0;
@@ -1393,7 +1393,14 @@ namespace cryptonote
   {
     blobdata bd = get_block_hashing_blob(b);
     const int cn_variant = b.major_version >= 7 ? b.major_version - 6 : 0;
-    crypto::cn_slow_hash(bd.data(), bd.size(), res, cn_variant);
+    
+    // FIX CN-HEAVY FOR SEVA
+    if(height >= 9063) {
+      crypto::cn_slow_hash(bd.data(), bd.size(), res, 1); // HEAVYYYYYYY !!
+    } else {
+      crypto::cn_slow_hash(bd.data(), bd.size(), res, 0); // CN CLASSIC (maybe)
+    }
+    
     return true;
   }
   //---------------------------------------------------------------

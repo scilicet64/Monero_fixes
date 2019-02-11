@@ -1,4 +1,4 @@
-// Copyright (c) 2018, The Loki Project
+// Copyright (c) 2018, The SevaBit Project
 //
 // All rights reserved.
 //
@@ -49,7 +49,7 @@ namespace service_nodes
   struct quorum_state;
 };
 
-namespace loki
+namespace sevabit
 {
   namespace service_node_deregister
   {
@@ -87,7 +87,7 @@ namespace loki
                     const service_nodes::quorum_state &quorum_state,
                     cryptonote::transaction &tx);
 
-      // TODO(loki): Review relay behaviour and all the cases when it should be triggered
+      // TODO(sevabit): Review relay behaviour and all the cases when it should be triggered
       void                                       set_relayed         (const std::vector<service_node_deregister::vote>& votes);
       void                                       remove_expired_votes(uint64_t height);
       void                                       remove_used_votes   (std::vector<cryptonote::transaction> const &txs);
@@ -133,5 +133,5 @@ namespace loki
       std::unordered_map<deregister_group, std::vector<deregister>, deregister_group_hasher> m_deregisters;
       mutable epee::critical_section m_lock;
   };
-}; // namespace loki
+}; // namespace sevabit
 

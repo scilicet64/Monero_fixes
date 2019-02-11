@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The Loki Project
+// Copyright (c)      2018, The SevaBit Project
 // 
 // All rights reserved.
 // 
@@ -29,4 +29,4 @@
 
 #pragma once
 
-double loki_round(double);
+double sevabit_round(double);

@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The Loki Project
+// Copyright (c)      2018, The SevaBit Project
 // 
 // All rights reserved.
 // 
@@ -51,8 +51,8 @@ using namespace epee;
 #include "p2p/net_node.h"
 #include "version.h"
 
-#undef LOKI_DEFAULT_LOG_CATEGORY
-#define LOKI_DEFAULT_LOG_CATEGORY "daemon.rpc"
+#undef SEVABIT_DEFAULT_LOG_CATEGORY
+#define SEVABIT_DEFAULT_LOG_CATEGORY "daemon.rpc"
 
 #define MAX_RESTRICTED_FAKE_OUTS_COUNT 40
 #define MAX_RESTRICTED_GLOBAL_FAKE_OUTS_COUNT 5000
@@ -171,6 +171,7 @@ namespace cryptonote
     ++res.height; // turn top block height into blockchain height
     res.top_block_hash = string_tools::pod_to_hex(top_hash);
     res.target_height = m_core.get_target_blockchain_height();
+	res.already_generated_coins = m_core.get_blockchain_storage().get_db().get_block_already_generated_coins(res.height - 1); 
     res.difficulty = m_core.get_blockchain_storage().get_difficulty_for_next_block();
     res.target = m_core.get_blockchain_storage().get_difficulty_target();
     res.tx_count = m_core.get_blockchain_storage().get_total_transactions() - res.height; //without coinbase
@@ -1111,6 +1112,7 @@ namespace cryptonote
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::on_submitblock(const COMMAND_RPC_SUBMITBLOCK::request& req, COMMAND_RPC_SUBMITBLOCK::response& res, epee::json_rpc::error& error_resp)
   {
+    LOG_PRINT_L0("core_rpc_server::on_submitblock");
     PERF_TIMER(on_submitblock);
     {
       boost::shared_lock<boost::shared_mutex> lock(m_bootstrap_daemon_mutex);
@@ -1568,6 +1570,7 @@ namespace cryptonote
     ++res.height; // turn top block height into blockchain height
     res.top_block_hash = string_tools::pod_to_hex(top_hash);
     res.target_height = m_core.get_target_blockchain_height();
+	res.already_generated_coins = m_core.get_blockchain_storage().get_db().get_block_already_generated_coins(res.height - 1); 
     res.difficulty = m_core.get_blockchain_storage().get_difficulty_for_next_block();
     res.target = DIFFICULTY_TARGET_V2;
     res.tx_count = m_core.get_blockchain_storage().get_total_transactions() - res.height; //without coinbase
@@ -1899,6 +1902,51 @@ namespace cryptonote
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
+  bool core_rpc_server::on_get_peers(const COMMAND_RPC_GET_PEER_LIST_FULL::request& req, COMMAND_RPC_GET_PEER_LIST_FULL::response& res)
+  {
+       // PRIMERO GUARDAS EN UNA VARIABLE EL MANAGER CON SU LISTA
+      // PARA ESO LLAMO A LA FUNCION
+      // ME PIDE 2 ARGUMENTOS PARA LLAMARLOS
+      // ENTONCES INICIALIZO
+      // ANDA LENTO
+      // LO COPIARE HAHA
+       // TIMER
+      PERF_TIMER(on_get_peers);
+       // DECLARO LAS 2 LISTAS
+      std::list<nodetool::peerlist_entry> white_list;
+      std::list<nodetool::peerlist_entry> gray_list;
+       // LE PASO LAS LISTAS AL MANAGER PARA QUE LOS LLENE
+      m_p2p.get_peerlist_manager().get_peerlist_full(gray_list, white_list);
+       // RECORRO LA LISTA BLANCA
+      for (auto & entry : white_list)
+      {
+         // PREGUNTO SI ES IPV4
+          if (entry.adr.get_type_id() == epee::net_utils::ipv4_network_address::ID) {
+              // SI LO ES ... LA PRINTEO Y AGREGO
+              res.peers.emplace_back(entry.adr.str()); // ESO ES TODO
+          }
+          // SINO, NADA
+      }
+       // LUEGO RECORRO LA GRAY LIST
+      for (auto & entry : gray_list)
+      {
+          // Y LO MISMO
+        if (entry.adr.get_type_id() == epee::net_utils::ipv4_network_address::ID) {
+             // SI LO ES ... LA PRINTEO Y AGREGO
+            res.peers.emplace_back(entry.adr.str()); // ESO ES TODO
+         }
+      }
+       //m_p2p.get_peerlist_manager().get_peerlist_full()
+       // LUEGO RECORRES LA LISTA QUE TRAJO (FOREACH)
+      // POR CADA RESULTADO AÑADES EL STRING AL VECTOR DE RES.PEERS :)
+      // SUERTE :)
+      // M_P2P ES EL MANAGER ok
+     // CHAO TODO
+    // COMPILA
+    res.status = CORE_RPC_STATUS_OK;
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::on_start_save_graph(const COMMAND_RPC_START_SAVE_GRAPH::request& req, COMMAND_RPC_START_SAVE_GRAPH::response& res)
   {
 	  PERF_TIMER(on_start_save_graph);
@@ -1918,7 +1966,7 @@ namespace cryptonote
   bool core_rpc_server::on_update(const COMMAND_RPC_UPDATE::request& req, COMMAND_RPC_UPDATE::response& res)
   {
     PERF_TIMER(on_update);
-    static const char software[] = "loki";
+    static const char software[] = "sevabit";
 #ifdef BUILD_TAG
     static const char buildtag[] = BOOST_PP_STRINGIZE(BUILD_TAG);
     static const char subdir[] = "cli";
@@ -1939,7 +1987,7 @@ namespace cryptonote
       res.status = "Error checking for updates";
       return true;
     }
-    if (tools::vercmp(version.c_str(), LOKI_VERSION) <= 0)
+    if (tools::vercmp(version.c_str(), SEVABIT_VERSION) <= 0)
     {
       res.update = false;
       res.status = CORE_RPC_STATUS_OK;

@@ -1,4 +1,4 @@
-# Copyright (c) 2018, The Loki Project
+# Copyright (c) 2018, The SevaBit Project
 # Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
@@ -43,7 +43,7 @@ endif()
 cmake_minimum_required(VERSION 2.8.7)
 message(STATUS "CMake version ${CMAKE_VERSION}")
 
-project(loki)
+project(sevabit)
 
 function (die msg)
   if (NOT WIN32)
@@ -184,11 +184,11 @@ if(NOT MANUAL_SUBMODULES)
       execute_process(COMMAND git rev-parse "HEAD" WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${relative_path} OUTPUT_VARIABLE localHead)
       execute_process(COMMAND git rev-parse "HEAD:${relative_path}" WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} OUTPUT_VARIABLE checkedHead)
       string(COMPARE EQUAL "${localHead}" "${checkedHead}" upToDate)
-      if (upToDate)
-        message(STATUS "Submodule '${relative_path}' is up-to-date")
-      else()
-        message(FATAL_ERROR "Submodule '${relative_path}' is not up-to-date. Please update with\ngit submodule update --init --force ${relative_path}\nor run cmake with -DMANUAL_SUBMODULES=1")
-      endif()
+    #    if (upToDate)
+    #    message(STATUS "Submodule '${relative_path}' is up-to-date")
+    #  else()
+    #    message(FATAL_ERROR "Submodule '${relative_path}' is not up-to-date. Please update with\ngit submodule update --init --force ${relative_path}\nor run cmake with -DMANUAL_SUBMODULES=1")
+    #  endif()
     endfunction ()
     
     message(STATUS "Checking submodules")
@@ -989,7 +989,7 @@ add_subdirectory(contrib)
 add_subdirectory(src)
 
 if(BUILD_TESTS)
-  add_subdirectory(tests)
+  # add_subdirectory(tests)
 endif()
 
 if(BUILD_DOCUMENTATION)

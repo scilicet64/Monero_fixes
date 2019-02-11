@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The Loki Project
+// Copyright (c)      2018, The SevaBit Project
 //
 // All rights reserved.
 //
@@ -59,8 +59,8 @@
 #include "service_node_deregister.h"
 #include "service_node_list.h"
 
-#undef LOKI_DEFAULT_LOG_CATEGORY
-#define LOKI_DEFAULT_LOG_CATEGORY "blockchain"
+#undef SEVABIT_DEFAULT_LOG_CATEGORY
+#define SEVABIT_DEFAULT_LOG_CATEGORY "blockchain"
 
 #define FIND_BLOCKCHAIN_SUPPLEMENT_MAX_SIZE (100*1024*1024) // 100 MB
 
@@ -91,10 +91,10 @@ static const struct {
   time_t time;
 } mainnet_hard_forks[] = {
   // version 7 from the start of the blockchain, inhereted from Monero mainnet
-  { network_version_7,               1,      0, 1503046577 },
-  { network_version_8,               64324,  0, 1533006000 },
-  { network_version_9_service_nodes, 101250, 0, 1537444800 },
-  { network_version_10_bulletproofs, 161849, 0, 1544743800 }, // 2018-12-13 23:30UTC
+  { network_version_7,               1, 0, 1543540000 },
+  { network_version_8,               2, 0, 1543540001 },
+  { network_version_9_service_nodes, 3, 0, 1543540002 },
+  { network_version_10_bulletproofs, 4, 0, 1543540003 }, // 2018-12-13 23:30UTC
 };
 
 static const struct {
@@ -124,7 +124,7 @@ static const struct {
 };
 
 //------------------------------------------------------------------
-Blockchain::Blockchain(tx_memory_pool& tx_pool, service_nodes::service_node_list& service_node_list, loki::deregister_vote_pool& deregister_vote_pool):
+Blockchain::Blockchain(tx_memory_pool& tx_pool, service_nodes::service_node_list& service_node_list, sevabit::deregister_vote_pool& deregister_vote_pool):
   m_db(), m_tx_pool(tx_pool), m_hardfork(NULL), m_timestamps_and_difficulties_height(0), m_current_block_cumul_weight_limit(0), m_current_block_cumul_weight_median(0),
   m_enforce_dns_checkpoints(false), m_max_prepare_blocks_threads(4), m_db_sync_on_blocks(true), m_db_sync_threshold(1), m_db_sync_mode(db_async), m_db_default_sync(false), m_fast_sync(true), m_show_time_stats(false), m_sync_counter(0), m_bytes_to_sync(0), m_cancel(false),
   m_difficulty_for_next_block_top_hash(crypto::null_hash),
@@ -1138,7 +1138,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
   std::vector<size_t> last_blocks_weights;
   get_last_n_blocks_weights(last_blocks_weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
 
-  loki_block_reward_context block_reward_context = {};
+  sevabit_block_reward_context block_reward_context = {};
   block_reward_context.fee                       = fee;
   block_reward_context.height                    = height;
   if (!calc_batched_governance_reward(height, block_reward_context.batched_governance))
@@ -1148,7 +1148,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
   }
 
   block_reward_parts reward_parts;
-  if (!get_loki_block_reward(epee::misc_utils::median(last_blocks_weights), cumulative_block_weight, already_generated_coins, version, reward_parts, block_reward_context))
+  if (!get_sevabit_block_reward(epee::misc_utils::median(last_blocks_weights), cumulative_block_weight, already_generated_coins, version, reward_parts, block_reward_context))
   {
     MERROR_VER("block weight " << cumulative_block_weight << " is bigger than allowed for this blockchain");
     return false;
@@ -1358,7 +1358,7 @@ bool Blockchain::create_block_template(block& b, const account_public_address& m
   //make blocks coin-base tx looks close to real coinbase tx to get truthful blob weight
   uint8_t hf_version = m_hardfork->get_current_version();
 
-  loki_miner_tx_context miner_tx_context(m_nettype,
+  sevabit_miner_tx_context miner_tx_context(m_nettype,
                                          m_service_node_list.select_winner(b.prev_id),
                                          m_service_node_list.get_winner_addresses_and_portions(b.prev_id));
 
@@ -1459,7 +1459,7 @@ bool Blockchain::complete_timestamps_vector(uint64_t start_top_height, std::vect
 // a long forked chain eventually.
 bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id, block_verification_context& bvc)
 {
-  LOG_PRINT_L3("Blockchain::" << __func__);
+  LOG_PRINT_L0("Blockchain::" << __func__);
   CRITICAL_REGION_LOCAL(m_blockchain_lock);
   m_timestamps_and_difficulties_height = 0;
   uint64_t block_height = get_block_height(b);
@@ -1477,6 +1477,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
   {
     MERROR_VER("Block with id: " << id << std::endl << " can't be accepted for alternative chain, block height: " << block_height << std::endl << " blockchain height: " << get_current_blockchain_height());
     bvc.m_verifivation_failed = true;
+    LOG_PRINT_L0("bvc.m_verifivation_failed1");
     return false;
   }
 
@@ -1485,6 +1486,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
   {
     LOG_PRINT_L1("Block with id: " << id << std::endl << "has old version for height " << block_height);
     bvc.m_verifivation_failed = true;
+    LOG_PRINT_L0("bvc.m_verifivation_failed2");
     return false;
   }
 
@@ -1543,6 +1545,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     {
       MERROR_VER("Block with id: " << id << std::endl << " for alternative chain, has invalid timestamp: " << b.timestamp);
       bvc.m_verifivation_failed = true;
+      LOG_PRINT_L0("bvc.m_verifivation_failed3");
       return false;
     }
 
@@ -1556,6 +1559,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     {
       LOG_ERROR("CHECKPOINT VALIDATION FAILED");
       bvc.m_verifivation_failed = true;
+      LOG_PRINT_L0("bvc.m_verifivation_failed4");
       return false;
     }
 
@@ -1575,6 +1579,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     {
       MERROR_VER("Block with id: " << epee::string_tools::pod_to_hex(id) << " (as alternative) has incorrect miner transaction.");
       bvc.m_verifivation_failed = true;
+      LOG_PRINT_L0("bvc.m_verifivation_failed5");
       return false;
     }
 
@@ -1604,7 +1609,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     {
       //do reorganize!
       MGINFO_GREEN("###### REORGANIZE on height: " << alt_chain.front()->second.height << " of " << m_db->height() - 1 << ", checkpoint is found in alternative chain on height " << bei.height);
-
+      LOG_PRINT_L0("alternative is_a_checkpoint - add more log from here...");
       bool r = switch_to_alternative_blockchain(alt_chain, true);
 
       if(r) bvc.m_added_to_main_chain = true;
@@ -1820,7 +1825,7 @@ void Blockchain::get_output_key_mask_unlocked(const uint64_t& amount, const uint
 //------------------------------------------------------------------
 bool Blockchain::get_output_distribution(uint64_t amount, uint64_t from_height, uint64_t to_height, uint64_t &start_height, std::vector<uint64_t> &distribution, uint64_t &base) const
 {
-  // rct outputs don't exist before v4, NOTE(loki): we started from v7 so our start is always 0
+  // rct outputs don't exist before v4, NOTE(sevabit): we started from v7 so our start is always 0
   start_height = 0;
   base = 0;
 
@@ -2400,22 +2405,9 @@ bool Blockchain::check_tx_outputs(const transaction& tx, tx_verification_context
     const bool borromean = rct::is_rct_borromean(tx.rct_signatures.type);
     if (borromean)
     {
-      uint64_t hf10_height = m_hardfork->get_earliest_ideal_height_for_version(network_version_10_bulletproofs);
-      uint64_t curr_height = this->get_current_blockchain_height();
-      if (curr_height == hf10_height)
-      {
-        // NOTE(loki): Allow the hardforking block to contain a borromean proof
-        // incase there were some transactions in the TX Pool that were
-        // generated pre-HF10 rules. Note, this isn't bulletproof. If there were
-        // more than 1 blocks worth of borromean proof TX's sitting in the pool
-        // this isn't going to work.
-      }
-      else
-      {
-        MERROR_VER("Borromean range proofs are not allowed after v10");
-        tvc.m_invalid_output = true;
-        return false;
-      }
+      MERROR_VER("Borromean range proofs are not allowed after v10");
+      tvc.m_invalid_output = true;
+      return false;
     }
   }
 
@@ -2555,7 +2547,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
         }
         else
         {
-          MDEBUG("Found unmixable output! This should never happen in Loki!");
+          MDEBUG("Found unmixable output! This should never happen in SevaBit!");
           uint64_t n_outputs = m_db->get_num_outputs(in_to_key.amount);
           MDEBUG("output size " << print_money(in_to_key.amount) << ": " << n_outputs << " available");
           // n_outputs includes the output we're considering
@@ -2938,7 +2930,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
       return false;
     }
 
-    if (!loki::service_node_deregister::verify_deregister(nettype(), deregister, tvc.m_vote_ctx, *quorum_state))
+    if (!sevabit::service_node_deregister::verify_deregister(nettype(), deregister, tvc.m_vote_ctx, *quorum_state))
     {
       tvc.m_verifivation_failed = true;
       MERROR_VER("tx " << get_transaction_hash(tx) << ": version 3 deregister_tx could not be completely verified reason: " << print_vote_verification_context(tvc.m_vote_ctx));
@@ -2960,11 +2952,11 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
       }
 
       uint64_t delta_height = curr_height - deregister.block_height;
-      if (delta_height >= loki::service_node_deregister::DEREGISTER_LIFETIME_BY_HEIGHT)
+      if (delta_height >= sevabit::service_node_deregister::DEREGISTER_LIFETIME_BY_HEIGHT)
       {
         LOG_PRINT_L1("Received deregister tx for height: " << deregister.block_height
                      << " and service node: "     << deregister.service_node_index
-                     << ", is older than: "       << loki::service_node_deregister::DEREGISTER_LIFETIME_BY_HEIGHT
+                     << ", is older than: "       << sevabit::service_node_deregister::DEREGISTER_LIFETIME_BY_HEIGHT
                      << " blocks and has been rejected. The current height is: " << curr_height);
         tvc.m_vote_ctx.m_invalid_block_height = true;
         tvc.m_verifivation_failed             = true;
@@ -2973,7 +2965,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
     }
 
     const uint64_t height            = deregister.block_height;
-    const size_t num_blocks_to_check = loki::service_node_deregister::DEREGISTER_LIFETIME_BY_HEIGHT;
+    const size_t num_blocks_to_check = sevabit::service_node_deregister::DEREGISTER_LIFETIME_BY_HEIGHT;
 
     std::vector<std::pair<cryptonote::blobdata,block>> blocks;
     std::vector<cryptonote::blobdata> txs;
@@ -3350,7 +3342,7 @@ bool Blockchain::flush_txes_from_pool(const std::vector<crypto::hash> &txids)
 //      m_db->add_block()
 bool Blockchain::handle_block_to_main_chain(const block& bl, const crypto::hash& id, block_verification_context& bvc)
 {
-  LOG_PRINT_L3("Blockchain::" << __func__);
+  LOG_PRINT_L0("Blockchain::" << __func__);
 
   TIME_MEASURE_START(block_processing_time);
   CRITICAL_REGION_LOCAL(m_blockchain_lock);
@@ -3362,6 +3354,7 @@ bool Blockchain::handle_block_to_main_chain(const block& bl, const crypto::hash&
   if(bl.prev_id != get_tail_id())
   {
     MERROR_VER("Block with id: " << id << std::endl << "has wrong prev_id: " << bl.prev_id << std::endl << "expected: " << get_tail_id());
+    LOG_PRINT_L0("handle_block_to_main_chain Block with id has wrong prev_id");
     bvc.m_verifivation_failed = true;
 leave:
     m_db->block_txn_stop();
@@ -3735,16 +3728,26 @@ bool Blockchain::update_next_cumulative_weight_limit()
 //------------------------------------------------------------------
 bool Blockchain::add_new_block(const block& bl_, block_verification_context& bvc)
 {
-  LOG_PRINT_L3("Blockchain::" << __func__);
+  LOG_PRINT_L0("Blockchain::" << __func__);
   //copy block here to let modify block.target
   block bl = bl_;
   crypto::hash id = get_block_hash(bl);
   CRITICAL_REGION_LOCAL(m_tx_pool);//to avoid deadlock lets lock tx_pool for whole add/reorganize process
   CRITICAL_REGION_LOCAL1(m_blockchain_lock);
   m_db->block_txn_start(true);
+ 
+ 
+  // INVALIDATE BLOCK 9446
+  if(bl.timestamp == 1546502574) {
+    LOG_PRINT_L0("block 9446 forked | shutdown");
+    m_db->block_txn_stop();
+    m_blocks_txs_check.clear();
+   return false;
+  }
+ 
   if(have_block(id))
   {
-    LOG_PRINT_L3("block with id = " << id << " already exists");
+    LOG_PRINT_L0("block with id = " << id << " already exists");
     bvc.m_already_exists = true;
     m_db->block_txn_stop();
     m_blocks_txs_check.clear();
@@ -3755,6 +3758,7 @@ bool Blockchain::add_new_block(const block& bl_, block_verification_context& bvc
   if(!(bl.prev_id == get_tail_id()))
   {
     //chain switching or wrong block
+    LOG_PRINT_L0("chain switching or wrong block" << bl.prev_id << ":" << get_tail_id());
     bvc.m_added_to_main_chain = false;
     m_db->block_txn_stop();
     bool r = handle_alternative_block(bl, id, bvc);

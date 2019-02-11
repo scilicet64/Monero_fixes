@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The Loki Project
+// Copyright (c)      2018, The SevaBit Project
 //
 // All rights reserved.
 //
@@ -61,8 +61,8 @@ using namespace epee;
 #include "wipeable_string.h"
 #include "common/i18n.h"
 
-#undef LOKI_DEFAULT_LOG_CATEGORY
-#define LOKI_DEFAULT_LOG_CATEGORY "cn"
+#undef SEVABIT_DEFAULT_LOG_CATEGORY
+#define SEVABIT_DEFAULT_LOG_CATEGORY "cn"
 
 DISABLE_VS_WARNINGS(4355)
 
@@ -155,7 +155,7 @@ namespace cryptonote
   };
   static const command_line::arg_descriptor<std::string> arg_check_updates = {
     "check-updates"
-  , "Check for new versions of loki: [disabled|notify|download|update]"
+  , "Check for new versions of sevabit: [disabled|notify|download|update]"
   , "notify"
   };
   static const command_line::arg_descriptor<bool> arg_fluffy_blocks  = {
@@ -449,8 +449,8 @@ namespace cryptonote
       if (boost::filesystem::exists(old_files / "blockchain.bin"))
       {
         MWARNING("Found old-style blockchain.bin in " << old_files.string());
-        MWARNING("Loki now uses a new format. You can either remove blockchain.bin to start syncing");
-        MWARNING("the blockchain anew, or use loki-blockchain-export and loki-blockchain-import to");
+        MWARNING("SevaBit now uses a new format. You can either remove blockchain.bin to start syncing");
+        MWARNING("the blockchain anew, or use sevabit-blockchain-export and sevabit-blockchain-import to");
         MWARNING("convert your existing blockchain.bin to the new format. See README.md for instructions.");
         return false;
       }
@@ -1288,7 +1288,7 @@ namespace cryptonote
     m_mempool.set_relayed(txs);
   }
   //-----------------------------------------------------------------------------------------------
-  void core::set_deregister_votes_relayed(const std::vector<loki::service_node_deregister::vote>& votes)
+  void core::set_deregister_votes_relayed(const std::vector<sevabit::service_node_deregister::vote>& votes)
   {
     m_deregister_vote_pool.set_relayed(votes);
   }
@@ -1363,6 +1363,7 @@ namespace cryptonote
   {
     block_verification_context bvc = boost::value_initialized<block_verification_context>();
     m_miner.pause();
+    LOG_PRINT_L0("core_rpc_server::on_submitblock");
     std::vector<block_complete_entry> blocks;
     try
     {
@@ -1371,6 +1372,7 @@ namespace cryptonote
     catch (const std::exception &e)
     {
       m_miner.resume();
+      LOG_PRINT_L0("hbf exception");
       return false;
     }
     prepare_handle_incoming_blocks(blocks);
@@ -1384,6 +1386,7 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES(!bvc.m_verifivation_failed, false, "mined block failed verification");
     if(bvc.m_added_to_main_chain)
     {
+      LOG_PRINT_L0("bvc.m_added_to_main_chain");
       cryptonote_connection_context exclude_context = boost::value_initialized<cryptonote_connection_context>();
       NOTIFY_NEW_BLOCK::request arg = AUTO_VAL_INIT(arg);
       arg.current_blockchain_height = m_blockchain_storage.get_current_blockchain_height();
@@ -1392,11 +1395,12 @@ namespace cryptonote
       m_blockchain_storage.get_transactions_blobs(b.tx_hashes, txs, missed_txs);
       if(missed_txs.size() &&  m_blockchain_storage.get_block_id_by_height(get_block_height(b)) != get_block_hash(b))
       {
-        LOG_PRINT_L1("Block found but, seems that reorganize just happened after that, do not relay this block");
+        LOG_PRINT_L0("Block found but, seems that reorganize just happened after that, do not relay this block");
         return true;
       }
       CHECK_AND_ASSERT_MES(txs.size() == b.tx_hashes.size() && !missed_txs.size(), false, "can't find some transactions in found block:" << get_block_hash(b) << " txs.size()=" << txs.size()
         << ", b.tx_hashes.size()=" << b.tx_hashes.size() << ", missed_txs.size()" << missed_txs.size());
+
 
       block_to_blob(b, arg.b.block);
       //pack transactions
@@ -1405,6 +1409,7 @@ namespace cryptonote
 
       m_pprotocol->relay_block(arg, exclude_context);
     }
+    else LOG_PRINT_L0("bvc.m_added_to_main_chain=false");
     return bvc.m_added_to_main_chain;
   }
   //-----------------------------------------------------------------------------------------------
@@ -1614,7 +1619,7 @@ namespace cryptonote
     {
       std::string main_message;
       if (m_offline)
-        main_message = "The daemon is running offline and will not attempt to sync to the Loki network.";
+        main_message = "The daemon is running offline and will not attempt to sync to the SevaBit network.";
       else
         main_message = "The daemon will start synchronizing with the network. This may take a long time to complete.";
       MGINFO_YELLOW(ENDL << "**********************************************************************" << ENDL
@@ -1693,7 +1698,7 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------
   bool core::check_updates()
   {
-    static const char software[] = "loki";
+    static const char software[] = "sevabit";
 #ifdef BUILD_TAG
     static const char buildtag[] = BOOST_PP_STRINGIZE(BUILD_TAG);
     static const char subdir[] = "cli"; // because it can never be simple
@@ -1713,7 +1718,7 @@ namespace cryptonote
     if (!tools::check_updates(software, buildtag, version, hash))
       return false;
 
-    if (tools::vercmp(version.c_str(), LOKI_VERSION) <= 0)
+    if (tools::vercmp(version.c_str(), SEVABIT_VERSION) <= 0)
     {
       m_update_available = false;
       return true;
@@ -1871,7 +1876,7 @@ namespace cryptonote
       MDEBUG("blocks in the last " << seconds[n] / 60 << " minutes: " << b << " (probability " << p << ")");
       if (p < threshold)
       {
-        MWARNING("There were " << b << " blocks in the last " << seconds[n] / 60 << " minutes, there might be large hash rate changes, or we might be partitioned, cut off from the Loki network or under attack. Or it could be just sheer bad luck.");
+        MWARNING("There were " << b << " blocks in the last " << seconds[n] / 60 << " minutes, there might be large hash rate changes, or we might be partitioned, cut off from the SevaBit network or under attack. Or it could be just sheer bad luck.");
         break; // no need to look further
       }
     }
@@ -1917,16 +1922,16 @@ namespace cryptonote
     return result;
   }
   //-----------------------------------------------------------------------------------------------
-  bool core::add_deregister_vote(const loki::service_node_deregister::vote& vote, vote_verification_context &vvc)
+  bool core::add_deregister_vote(const sevabit::service_node_deregister::vote& vote, vote_verification_context &vvc)
   {
     uint64_t latest_block_height = std::max(get_current_blockchain_height(), get_target_blockchain_height());
     uint64_t delta_height = latest_block_height - vote.block_height;
 
-    if (vote.block_height < latest_block_height && delta_height >= loki::service_node_deregister::VOTE_LIFETIME_BY_HEIGHT)
+    if (vote.block_height < latest_block_height && delta_height >= sevabit::service_node_deregister::VOTE_LIFETIME_BY_HEIGHT)
     {
       LOG_PRINT_L1("Received vote for height: " << vote.block_height
                 << " and service node: "     << vote.service_node_index
-                << ", is older than: "       << loki::service_node_deregister::VOTE_LIFETIME_BY_HEIGHT
+                << ", is older than: "       << sevabit::service_node_deregister::VOTE_LIFETIME_BY_HEIGHT
                 << " blocks and has been rejected.");
       vvc.m_invalid_block_height = true;
     }
