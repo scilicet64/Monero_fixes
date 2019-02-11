@@ -26,12 +26,40 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# We aren't even going to check the system for an installed LMDB driver, as it is too
-# critical a consensus component to rely on dynamically linked libraries
-message(STATUS "Using ${ARCH_WIDTH}-bit LMDB from source tree")
-add_subdirectory(liblmdb)
-set(LMDB_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/liblmdb" CACHE STRING "LMDB Include path")
-set(LMDB_LIBRARY "lmdb" CACHE STRING "LMDB Library name")
-if(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
-	set_property(TARGET lmdb APPEND_STRING PROPERTY COMPILE_FLAGS " -D_SEM_SEMUN_UNDEFINED")
+if(FREEBSD)
+  add_definitions(-DMDB_DSYNC=O_SYNC)
 endif()
+
+if(ANDROID)
+  add_definitions("-DANDROID=1")
+endif()
+
+
+set (lmdb_sources
+mdb.c
+midl.c)
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_library(lmdb
+  ${lmdb_sources})
+target_link_libraries(lmdb
+  PRIVATE
+    ${CMAKE_THREAD_LIBS_INIT})
+if(${ARCH_WIDTH} EQUAL 32)
+  target_compile_definitions(lmdb
+    PUBLIC -DMDB_VL32)
+endif()
+
+# GUI/libwallet install target
+if (BUILD_GUI_DEPS)
+    if(IOS)
+        set(lib_folder lib-${ARCH})
+    else()
+        set(lib_folder lib)
+    endif()
+    install(TARGETS lmdb
+        ARCHIVE DESTINATION ${lib_folder}
+        LIBRARY DESTINATION ${lib_folder})
+endif()
+set_property(TARGET lmdb APPEND PROPERTY COMPILE_FLAGS "-fPIC")
