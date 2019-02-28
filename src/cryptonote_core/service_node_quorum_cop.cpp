@@ -1,4 +1,4 @@
-// Copyright (c)      2018, The Loki Project
+// Copyright (c)      2018, The SevaBit Project
 //
 // All rights reserved.
 //
@@ -33,8 +33,8 @@
 #include "cryptonote_core.h"
 #include "version.h"
 
-#undef LOKI_DEFAULT_LOG_CATEGORY
-#define LOKI_DEFAULT_LOG_CATEGORY "quorum_cop"
+#undef SEVABIT_DEFAULT_LOG_CATEGORY
+#define SEVABIT_DEFAULT_LOG_CATEGORY "quorum_cop"
 
 namespace service_nodes
 {
@@ -101,7 +101,7 @@ namespace service_nodes
       const std::shared_ptr<const quorum_state> state = m_core.get_quorum_state(m_last_height);
       if (!state)
       {
-        // TODO(loki): Fatal error
+        // TODO(sevabit): Fatal error
         LOG_ERROR("Quorum state for height: " << m_last_height << "was not cached in daemon!");
         continue;
       }
@@ -177,16 +177,15 @@ namespace service_nodes
     crypto::hash hash = make_hash(pubkey, timestamp);
     if (!crypto::check_signature(hash, pubkey, sig))
       return false;
-
     m_uptime_proof_seen[pubkey] = now;
     return true;
   }
 
   void generate_uptime_proof_request(const crypto::public_key& pubkey, const crypto::secret_key& seckey, cryptonote::NOTIFY_UPTIME_PROOF::request& req)
   {
-    req.snode_version_major = static_cast<uint16_t>(LOKI_VERSION_MAJOR);
-    req.snode_version_minor = static_cast<uint16_t>(LOKI_VERSION_MINOR);
-    req.snode_version_patch = static_cast<uint16_t>(LOKI_VERSION_PATCH);
+    req.snode_version_major = static_cast<uint16_t>(SEVABIT_VERSION_MAJOR);
+    req.snode_version_minor = static_cast<uint16_t>(SEVABIT_VERSION_MINOR);
+    req.snode_version_patch = static_cast<uint16_t>(SEVABIT_VERSION_PATCH);
     req.timestamp           = time(nullptr);
     req.pubkey              = pubkey;
 

@@ -213,7 +213,7 @@ namespace cryptonote
       FIELD(extra)
       if (version >= version_4_tx_types)
       {
-        VARINT_FIELD(type) // NOTE(loki): Overwrites is_deregister
+        VARINT_FIELD(type) // NOTE(sevabit): Overwrites is_deregister
         if (static_cast<uint16_t>(type) >= type_count) return false;
       }
     END_SERIALIZE()
@@ -526,8 +526,8 @@ namespace cryptonote
 
   inline enum transaction_prefix::version transaction_prefix::get_min_version_for_hf(int hf_version, cryptonote::network_type nettype)
   {
-    // NOTE(loki): Add an exception for testnet as there was a TX v2 on Testnet.
-    // TODO(loki): We can remove this one day when/if we reboot testnet
+    // NOTE(sevabit): Add an exception for testnet as there was a TX v2 on Testnet.
+    // TODO(sevabit): We can remove this one day when/if we reboot testnet
     if (nettype == TESTNET)
     {
       if (hf_version == cryptonote::network_version_10_bulletproofs)
@@ -554,7 +554,7 @@ namespace cryptonote
       return type_standard;
     }
 
-    // NOTE(loki): Type is range checked on deserialisation, so hitting this is a developer error
+    // NOTE(sevabit): Type is range checked on deserialisation, so hitting this is a developer error
     assert(static_cast<uint16_t>(type) < static_cast<uint16_t>(type_count));
     return static_cast<transaction::type_t>(type);
   }
@@ -577,7 +577,7 @@ namespace cryptonote
 
     if (result)
     {
-      assert(static_cast<uint16_t>(new_type) <= static_cast<uint16_t>(type_count)); // NOTE(loki): Developer error
+      assert(static_cast<uint16_t>(new_type) <= static_cast<uint16_t>(type_count)); // NOTE(sevabit): Developer error
       type = static_cast<uint16_t>(new_type);
     }
 

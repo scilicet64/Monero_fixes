@@ -1,4 +1,4 @@
-#include "loki.h"
+#include "sevabit.h"
 #include <assert.h>
 
 /* Exponential base 2 function.
@@ -23,7 +23,7 @@
 #include <cfloat>
 #include <cmath>
 
-// TODO(loki): This is temporary until we switch to integer math for calculating
+// TODO(sevabit): This is temporary until we switch to integer math for calculating
 // block rewards. We provide the specific implementation to minimise the risk of
 // different results from math functions across different std libraries.
 static_assert(std::numeric_limits<double>::is_iec559, "We require IEEE standard compliant doubles.");
@@ -40,8 +40,15 @@ static_assert(std::numeric_limits<double>::is_iec559, "We require IEEE standard 
 /* Best possible approximation of 256/log(2) as a 'double'.  */
 #define LOG2_BY_256_INVERSE 369.329930467574632284140718336484387181
 
+==== BASE ====
+// TODO(sevabit): This is temporary until we switch to integer math for calculating
+// block rewards. We provide the specific implementation to minimise the risk of
+// different results from math functions across different std libraries.
+static_assert(std::numeric_limits<double>::is_iec559, "We require IEEE standard compliant doubles.");
+
+==== BASE ====
 double
-loki::exp2(double x)
+sevabit::exp2(double x)
 {
   /* exp2(x) = exp(x*log(2)).
      If we would compute it like this, there would be rounding errors for
@@ -95,7 +102,7 @@ loki::exp2(double x)
        truncate the series after the z^5 term.  */
 
   {
-    double nm = loki::round (x * 256.0); /* = 256 * n + m */
+    double nm = sevabit::round (x * 256.0); /* = 256 * n + m */
     double z = (x * 256.0 - nm) * (LOG2_BY_256 * 0.5);
 
 /* Coefficients of the power series for tanh(z).  */
@@ -117,7 +124,7 @@ loki::exp2(double x)
 
     double exp_y = (1.0 + tanh_z) / (1.0 - tanh_z);
 
-    int n = (int) loki::round (nm * (1.0 / 256.0));
+    int n = (int) sevabit::round (nm * (1.0 / 256.0));
     int m = (int) nm - 256 * n;
 
     /* exp_table[i] = exp((i - 128) * log(2)/256).
@@ -435,7 +442,7 @@ loki::exp2(double x)
 #endif
 
 double
-loki::round (double x)
+sevabit::round (double x)
 {
   /* 2^(DBL_MANT_DIG-1).  */
   static const double TWO_MANT_DIG =
@@ -498,7 +505,7 @@ loki::round (double x)
   return z;
 }
 
-// adapted from Lokinet llarp/encode.hpp
+// adapted from Sevabitnet llarp/encode.hpp
 // from  https://en.wikipedia.org/wiki/Base32#z-base-32
 static const char zbase32_alpha[] = {'y', 'b', 'n', 'd', 'r', 'f', 'g', '8',
                                      'e', 'j', 'k', 'm', 'c', 'p', 'q', 'x',
@@ -543,7 +550,7 @@ const char* base32z_encode(const v& value, stack_t &stack)
   return &stack[0];
 }
 
-std::string loki::hex64_to_base32z(const std::string &src)
+std::string sevabit::hex64_to_base32z(const std::string &src)
 {
   assert(src.size() <= 64); // NOTE: Developer error, update function if you need more. This is intended for 64 char snode pubkeys
   char buf[128] = {};

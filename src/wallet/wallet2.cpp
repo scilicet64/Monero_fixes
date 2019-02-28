@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The Loki Project
+// Copyright (c)      2018, The SevaBit Project
 // 
 // All rights reserved.
 // 
@@ -89,8 +89,8 @@ using namespace std;
 using namespace crypto;
 using namespace cryptonote;
 
-#undef LOKI_DEFAULT_LOG_CATEGORY
-#define LOKI_DEFAULT_LOG_CATEGORY "wallet.wallet2"
+#undef SEVABIT_DEFAULT_LOG_CATEGORY
+#define SEVABIT_DEFAULT_LOG_CATEGORY "wallet.wallet2"
 
 // used to choose when to stop adding outputs to a tx
 #define APPROXIMATE_INPUT_BYTES 80
@@ -102,9 +102,9 @@ using namespace cryptonote;
 #define CHACHA8_KEY_TAIL 0x8c
 #define CACHE_KEY_TAIL 0x8d
 
-#define UNSIGNED_TX_PREFIX "Loki unsigned tx set\004"
-#define SIGNED_TX_PREFIX "Loki signed tx set\004"
-#define MULTISIG_UNSIGNED_TX_PREFIX "Loki multisig unsigned tx set\001"
+#define UNSIGNED_TX_PREFIX "SevaBit unsigned tx set\004"
+#define SIGNED_TX_PREFIX "SevaBit signed tx set\004"
+#define MULTISIG_UNSIGNED_TX_PREFIX "SevaBit multisig unsigned tx set\001"
 
 #define RECENT_OUTPUT_RATIO (0.5) // 50% of outputs are from the recent zone
 #define RECENT_OUTPUT_DAYS (1.8) // last 1.8 day makes up the recent zone (taken from monerolink.pdf, Miller et al)
@@ -115,11 +115,11 @@ using namespace cryptonote;
 
 #define SECOND_OUTPUT_RELATEDNESS_THRESHOLD 0.0f
 
-#define KEY_IMAGE_EXPORT_FILE_MAGIC "Loki key image export\002"
+#define KEY_IMAGE_EXPORT_FILE_MAGIC "SevaBit key image export\002"
 
-#define MULTISIG_EXPORT_FILE_MAGIC "Loki multisig export\001"
+#define MULTISIG_EXPORT_FILE_MAGIC "SevaBit multisig export\001"
 
-#define OUTPUT_EXPORT_FILE_MAGIC "Loki output export\003"
+#define OUTPUT_EXPORT_FILE_MAGIC "SevaBit output export\003"
 
 #define SEGREGATION_FORK_HEIGHT 99999999
 #define TESTNET_SEGREGATION_FORK_HEIGHT 99999999
@@ -138,7 +138,7 @@ namespace
   std::string get_default_ringdb_path()
   {
     boost::filesystem::path dir = tools::get_default_data_dir();
-    // remove .loki, replace with .shared-ringdb
+    // remove .sevabit, replace with .shared-ringdb
     dir = dir.remove_filename();
     dir /= ".shared-ringdb";
     return dir.string();
@@ -1414,8 +1414,8 @@ void wallet2::scan_output(const cryptonote::transaction &tx, const crypto::publi
     if (!m_encrypt_keys_after_refresh)
     {
       boost::optional<epee::wipeable_string> pwd = m_callback->on_get_password(pool ? "output found in pool" : "output received");
-      THROW_WALLET_EXCEPTION_IF(!pwd, error::password_needed, tr("Password is needed to compute key image for incoming loki"));
-      THROW_WALLET_EXCEPTION_IF(!verify_password(*pwd), error::password_needed, tr("Invalid password: password is needed to compute key image for incoming loki"));
+      THROW_WALLET_EXCEPTION_IF(!pwd, error::password_needed, tr("Password is needed to compute key image for incoming sevabit"));
+      THROW_WALLET_EXCEPTION_IF(!verify_password(*pwd), error::password_needed, tr("Invalid password: password is needed to compute key image for incoming sevabit"));
       decrypt_keys(*pwd);
       m_encrypt_keys_after_refresh = *pwd;
     }
@@ -1541,7 +1541,7 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
   // stored into m_transfers so we cannot determine if the entry in m_transfers
   // came from this transaction or a previous transaction.
 
-  // TODO(loki): This case might be feasible at all where a key image is
+  // TODO(sevabit): This case might be feasible at all where a key image is
   // duplicated in the _same_ tx in different output indexes, because the
   // algorithm for making a key image uses the output index. Investigate, and if
   // it's not feasible to construct a malicious one without absolutely breaking
@@ -1632,7 +1632,7 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
       continue;
     }
 
-    // NOTE(loki): (miner_tx && m_refresh_type == RefreshOptimiseCoinbase) used
+    // NOTE(sevabit): (miner_tx && m_refresh_type == RefreshOptimiseCoinbase) used
     // to be an optimisation step that checks if the first output was destined
     // for us otherwise skip. This is not possible for us because our
     // block-reward now always has more than 1 output, mining, service node
@@ -5560,7 +5560,7 @@ bool wallet2::is_transfer_unlocked(uint64_t unlock_time, uint64_t block_height, 
   if (!use_fork_rules(cryptonote::network_version_11_infinite_staking))
     return true;
 
-  if (!key_image) // TODO(loki): Try make all callees always pass in a key image for accuracy
+  if (!key_image) // TODO(sevabit): Try make all callees always pass in a key image for accuracy
     return true;
 
   blobdata binary_buf;
@@ -6089,7 +6089,7 @@ bool wallet2::sign_tx(unsigned_tx_set &exported_txs, std::vector<wallet2::pendin
     std::vector<crypto::secret_key> additional_tx_keys;
     rct::multisig_out msout;
 
-    loki_construct_tx_params tx_params = {};
+    sevabit_construct_tx_params tx_params = {};
     tx_params.v4_allow_tx_types        = sd.v4_allow_tx_types;
     tx_params.v3_per_output_unlock     = sd.v3_per_output_unlock;
     tx_params.v2_rct                   = sd.v2_use_rct;
@@ -6563,7 +6563,7 @@ bool wallet2::sign_multisig_tx(multisig_tx_set &exported_txs, std::vector<crypto
       rct_config.bp_version = use_fork_rules(HF_VERSION_SMALLER_BP, 5) ? 2 : 1;
     }
 
-    loki_construct_tx_params tx_params = {};
+    sevabit_construct_tx_params tx_params = {};
     tx_params.v4_allow_tx_types        = sd.v4_allow_tx_types;
     tx_params.v3_per_output_unlock     = sd.v3_per_output_unlock;
     tx_params.v2_rct                   = sd.v2_use_rct;
@@ -6758,7 +6758,7 @@ int wallet2::get_fee_algorithm() const
 uint64_t wallet2::adjust_mixin(uint64_t mixin) const
 {
   if (mixin != 9) {
-    MWARNING("Requested ring size " << (mixin + 1) << " incorrect for loki, using 10");
+    MWARNING("Requested ring size " << (mixin + 1) << " incorrect for SevaBit, using 10");
     mixin = 9;
   }
   return mixin;
@@ -7148,7 +7148,7 @@ wallet2::stake_result wallet2::check_stake_allowed(const crypto::public_key& sn_
   if (max_contrib_total == 0)
   {
     result.status = stake_result_status::service_node_contribution_maxed;
-    result.msg = tr("The service node cannot receive any more Loki from this wallet");
+    result.msg = tr("The service node cannot receive any more Sevabit from this wallet");
     return result;
   }
 
@@ -7176,7 +7176,7 @@ wallet2::stake_result wallet2::check_stake_allowed(const crypto::public_key& sn_
       result.msg.reserve(128);
       result.msg =  tr("You must contribute at least ");
       result.msg += print_money(min_contrib_total);
-      result.msg += tr(" loki to become a contributor for this service node.");
+      result.msg += tr(" sevabit to become a contributor for this service node.");
       return result;
     }
   }
@@ -7185,7 +7185,7 @@ wallet2::stake_result wallet2::check_stake_allowed(const crypto::public_key& sn_
   {
     result.msg += tr("You may only contribute up to ");
     result.msg += print_money(max_contrib_total);
-    result.msg += tr(" more loki to this service node. ");
+    result.msg += tr(" more sevabit to this service node. ");
     result.msg += tr("Reducing your stake from ");
     result.msg += print_money(amount);
     result.msg += tr(" to ");
@@ -7613,7 +7613,7 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
       {
         double percent_of_outputs_blacklisted = output_blacklist.size() / (double)n_rct;
         if (static_cast<int>(percent_of_outputs_blacklisted + 1) > 5)
-          MWARNING("More than 5 percent of available outputs are blacklisted, please notify the Loki developers");
+          MWARNING("More than 5 percent of available outputs are blacklisted, please notify the Sevabit developers");
       }
 
       for (;;)
@@ -7920,7 +7920,7 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
           [](const get_outputs_out &a, const get_outputs_out &b) { return a.index < b.index; });
     }
 
-    if (ELPP->vRegistry()->allowed(el::Level::Debug, LOKI_DEFAULT_LOG_CATEGORY))
+    if (ELPP->vRegistry()->allowed(el::Level::Debug, SEVABIT_DEFAULT_LOG_CATEGORY))
     {
       std::map<uint64_t, std::set<uint64_t>> outs;
       for (const auto &i: req.outputs)
@@ -8191,11 +8191,11 @@ void wallet2::transfer_selected(const std::vector<cryptonote::tx_destination_ent
   rct::multisig_out msout;
   LOG_PRINT_L2("constructing tx");
 
-  // TODO(loki): We don't really need this function anymore, only the rct
+  // TODO(sevabit): We don't really need this function anymore, only the rct
   // version. Do core tests rely on this? And if so do we even care?
-  // TODO(loki): This should be replaced with a NodeRPCProxy function to get the
+  // TODO(sevabit): This should be replaced with a NodeRPCProxy function to get the
   // current hardfork version
-  loki_construct_tx_params tx_params = {};
+  sevabit_construct_tx_params tx_params = {};
   tx_params.v4_allow_tx_types        = use_fork_rules(network_version_11_infinite_staking, 5);
   tx_params.v3_per_output_unlock     = use_fork_rules(network_version_9_service_nodes, 5);
   tx_params.v2_rct                   = false;
@@ -8433,9 +8433,9 @@ void wallet2::transfer_selected_rct(std::vector<cryptonote::tx_destination_entry
   LOG_PRINT_L2("constructing tx");
   auto sources_copy = sources;
 
-  // TODO(loki): This should be replaced with a NodeRPCProxy function to get the
+  // TODO(sevabit): This should be replaced with a NodeRPCProxy function to get the
   // current hardfork version. Then use the constructor to get the rules?
-  loki_construct_tx_params tx_params = {};
+  sevabit_construct_tx_params tx_params = {};
   tx_params.v4_allow_tx_types    = use_fork_rules(network_version_11_infinite_staking, 5);
   tx_params.v3_per_output_unlock = use_fork_rules(network_version_9_service_nodes, 5);
   tx_params.v3_is_staking_tx     = is_staking_tx;
@@ -8950,7 +8950,7 @@ void wallet2::light_wallet_get_address_txs()
     address_tx.m_block_height = t.height;
     address_tx.m_unlock_time  = t.unlock_time;
     address_tx.m_timestamp = t.timestamp;
-    address_tx.m_type  = t.coinbase ? pay_type::miner : pay_type::in; // TODO(loki): Only accounts for miner, but wait, do we even care about this code? Looks like openmonero code
+    address_tx.m_type  = t.coinbase ? pay_type::miner : pay_type::in; // TODO(SevaBit): Only accounts for miner, but wait, do we even care about this code? Looks like openmonero code
     address_tx.m_mempool  = t.mempool;
     m_light_wallet_address_txs.emplace(tx_hash,address_tx);
 
@@ -8964,7 +8964,7 @@ void wallet2::light_wallet_get_address_txs()
       payment.m_block_height = t.height;
       payment.m_unlock_time  = t.unlock_time;
       payment.m_timestamp = t.timestamp;
-      payment.m_type = t.coinbase ? pay_type::miner : pay_type::in; // TODO(loki): Only accounts for miner, but wait, do we even care about this code? Looks like openmonero code
+      payment.m_type = t.coinbase ? pay_type::miner : pay_type::in; // TODO(SevaBit): Only accounts for miner, but wait, do we even care about this code? Looks like openmonero code
         
       if (t.mempool) {   
         if (std::find(unconfirmed_payments_txs.begin(), unconfirmed_payments_txs.end(), tx_hash) == unconfirmed_payments_txs.end()) {
@@ -12433,7 +12433,7 @@ std::string wallet2::make_uri(const std::string &address, const std::string &pay
     }
   }
 
-  std::string uri = "loki:" + address;
+  std::string uri = "sevabit:" + address;
   unsigned int n_fields = 0;
 
   if (!payment_id.empty())
@@ -12462,13 +12462,13 @@ std::string wallet2::make_uri(const std::string &address, const std::string &pay
 //----------------------------------------------------------------------------------------------------
 bool wallet2::parse_uri(const std::string &uri, std::string &address, std::string &payment_id, uint64_t &amount, std::string &tx_description, std::string &recipient_name, std::vector<std::string> &unknown_parameters, std::string &error)
 {
-  if (uri.substr(0, 5) != "loki:")
+  if (uri.substr(0, 7) != "sevabit:")
   {
-    error = std::string("URI has wrong scheme (expected \"loki:\"): ") + uri;
+    error = std::string("URI has wrong scheme (expected \"sevabit:\"): ") + uri;
     return false;
   }
 
-  std::string remainder = uri.substr(5);
+  std::string remainder = uri.substr(8);
   const char *ptr = strchr(remainder.c_str(), '?');
   address = ptr ? remainder.substr(0, ptr-remainder.c_str()) : remainder;
 

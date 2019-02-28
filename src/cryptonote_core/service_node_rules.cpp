@@ -1,5 +1,5 @@
 #include "cryptonote_config.h"
-#include "common/loki.h"
+#include "common/sevabit.h"
 #include "int-util.h"
 #include <vector>
 #include <boost/lexical_cast.hpp>
@@ -14,20 +14,20 @@ uint64_t get_staking_requirement(cryptonote::network_type m_nettype, uint64_t he
   if (m_nettype == cryptonote::TESTNET || m_nettype == cryptonote::FAKECHAIN)
       return COIN * 100;
 
-  uint64_t hardfork_height = m_nettype == cryptonote::MAINNET ? 101250 : 96210 /* stagenet */;
-  if (height < hardfork_height) height = hardfork_height;
+    uint64_t hardfork_height = m_nettype == cryptonote::MAINNET ? 101250 : 96210 /* stagenet */;
+    if (height < hardfork_height) height = hardfork_height;
 
   uint64_t height_adjusted = height - hardfork_height;
   uint64_t base = 0, variable = 0;
   if (height >= 230704)
   {
     base     = 15000 * COIN;
-    variable = (25007.0 * COIN) / loki::exp2(height_adjusted/129600.0);
+    variable = (25007.0 * COIN) / sevabit::exp2(height_adjusted/129600.0);
   }
   else
   {
     base      = 10000 * COIN;
-    variable  = (35000.0 * COIN) / loki::exp2(height_adjusted/129600.0);
+    variable  = (35000.0 * COIN) / sevabit::exp2(height_adjusted/129600.0);
   }
 
   uint64_t result = base + variable;

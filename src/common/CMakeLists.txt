@@ -1,4 +1,4 @@
-# Copyright (c) 2018, The Loki Project
+# Copyright (c) 2018, The SevaBit Project
 # Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
@@ -36,7 +36,7 @@ set(common_sources
   download.cpp
   error.cpp
   expect.cpp
-  loki.cpp
+  sevabit.cpp
   util.cpp
   i18n.cpp
   rules.cpp
@@ -70,7 +70,7 @@ set(common_private_headers
   download.h
   error.h
   expect.h
-  loki.h
+  sevabit.h
   http_connection.h
   notify.h
   pod-class.h
@@ -91,9 +91,9 @@ set(common_private_headers
   aligned.h
   combinator.h)
 
-loki_private_headers(common
+sevabit_private_headers(common
   ${common_private_headers})
-loki_add_library(common
+sevabit_add_library(common
   ${common_sources}
   ${common_headers}
   ${common_private_headers}

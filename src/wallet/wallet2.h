@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The Loki Project
+// Copyright (c)      2018, The SevaBit Project
 // 
 // All rights reserved.
 // 
@@ -64,8 +64,8 @@
 #include "node_rpc_proxy.h"
 #include "message_store.h"
 
-#undef LOKI_DEFAULT_LOG_CATEGORY
-#define LOKI_DEFAULT_LOG_CATEGORY "wallet.wallet2"
+#undef SEVABIT_DEFAULT_LOG_CATEGORY
+#define SEVABIT_DEFAULT_LOG_CATEGORY "wallet.wallet2"
 
 #define SUBADDRESS_LOOKAHEAD_MAJOR 50
 #define SUBADDRESS_LOOKAHEAD_MINOR 200
@@ -394,7 +394,7 @@ namespace tools
       std::vector<cryptonote::tx_destination_entry> m_dests;
       crypto::hash m_payment_id;
       uint64_t m_timestamp;
-      uint64_t m_unlock_time; // NOTE(loki): Not used after TX v2.
+      uint64_t m_unlock_time; // NOTE(sevabit): Not used after TX v2.
       std::vector<uint64_t> m_unlock_times;
       uint32_t m_subaddr_account;   // subaddress account of your wallet to be used in this transfer
       std::set<uint32_t> m_subaddr_indices;  // set of address indices used as inputs in this transfer
@@ -860,7 +860,7 @@ namespace tools
     void get_unconfirmed_payments_out(std::list<std::pair<crypto::hash,wallet2::unconfirmed_transfer_details>>& unconfirmed_payments, const boost::optional<uint32_t>& subaddr_account = boost::none, const std::set<uint32_t>& subaddr_indices = {}) const;
     void get_unconfirmed_payments(std::list<std::pair<crypto::hash,wallet2::pool_payment_details>>& unconfirmed_payments, const boost::optional<uint32_t>& subaddr_account = boost::none, const std::set<uint32_t>& subaddr_indices = {}) const;
 
-    // NOTE(loki): get_all_service_node caches the result, get_service_nodes doesn't
+    // NOTE(sevabit): get_all_service_node caches the result, get_service_nodes doesn't
     std::vector<cryptonote::COMMAND_RPC_GET_SERVICE_NODES::response::entry> get_all_service_nodes(boost::optional<std::string> &failed)                                          const { return m_node_rpc_proxy.get_all_service_nodes(failed); }
     std::vector<cryptonote::COMMAND_RPC_GET_SERVICE_NODES::response::entry> get_service_nodes    (std::vector<std::string> const &pubkeys, boost::optional<std::string> &failed) const { return m_node_rpc_proxy.get_service_nodes(pubkeys, failed); }
     std::vector<cryptonote::COMMAND_RPC_GET_SERVICE_NODE_BLACKLISTED_KEY_IMAGES::entry> get_service_node_blacklisted_key_images(boost::optional<std::string> &failed)            const { return m_node_rpc_proxy.get_service_node_blacklisted_key_images(failed); }

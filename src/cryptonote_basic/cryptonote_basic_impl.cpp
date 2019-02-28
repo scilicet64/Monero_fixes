@@ -1,5 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The Loki Project
+// Copyright (c)      2018, The SevaBit Project
 //
 // All rights reserved.
 //
@@ -43,10 +43,10 @@ using namespace epee;
 #include "crypto/hash.h"
 #include "int-util.h"
 #include "common/dns_utils.h"
-#include "common/loki.h"
+#include "common/sevabit.h"
 
-#undef LOKI_DEFAULT_LOG_CATEGORY
-#define LOKI_DEFAULT_LOG_CATEGORY "cn"
+#undef SEVABIT_DEFAULT_LOG_CATEGORY
+#define SEVABIT_DEFAULT_LOG_CATEGORY "cn"
 
 namespace cryptonote {
 
@@ -91,9 +91,9 @@ namespace cryptonote {
   bool get_base_block_reward(size_t median_weight, size_t current_block_weight, uint64_t already_generated_coins, uint64_t &reward, uint8_t version, uint64_t height) {
 
     //premine reward
-    if (already_generated_coins == 0)
+    if (height == 2)
     {
-      reward = 22500000000000000;
+      reward = 25000000000000000;
       return true;
     }
 
@@ -108,7 +108,7 @@ namespace cryptonote {
     }
 
     if (version >= 8)
-      base_reward = 28000000000.0 + 100000000000.0 / loki::exp2(height / (720.0 * 90.0)); // halve every 90 days.
+      base_reward = 28000000000.0 + 100000000000.0 / sevabit::exp2(height / (720.0 * 90.0)); // halve every 90 days.
 
     uint64_t full_reward_zone = get_min_block_weight(version);
 
