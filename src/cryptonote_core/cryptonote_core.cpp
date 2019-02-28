@@ -1363,7 +1363,6 @@ namespace cryptonote
   {
     block_verification_context bvc = boost::value_initialized<block_verification_context>();
     m_miner.pause();
-    LOG_PRINT_L0("core_rpc_server::on_submitblock");
     std::vector<block_complete_entry> blocks;
     try
     {
@@ -1372,7 +1371,6 @@ namespace cryptonote
     catch (const std::exception &e)
     {
       m_miner.resume();
-      LOG_PRINT_L0("hbf exception");
       return false;
     }
     prepare_handle_incoming_blocks(blocks);
@@ -1386,7 +1384,6 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES(!bvc.m_verifivation_failed, false, "mined block failed verification");
     if(bvc.m_added_to_main_chain)
     {
-      LOG_PRINT_L0("bvc.m_added_to_main_chain");
       cryptonote_connection_context exclude_context = boost::value_initialized<cryptonote_connection_context>();
       NOTIFY_NEW_BLOCK::request arg = AUTO_VAL_INIT(arg);
       arg.current_blockchain_height = m_blockchain_storage.get_current_blockchain_height();
@@ -1395,12 +1392,11 @@ namespace cryptonote
       m_blockchain_storage.get_transactions_blobs(b.tx_hashes, txs, missed_txs);
       if(missed_txs.size() &&  m_blockchain_storage.get_block_id_by_height(get_block_height(b)) != get_block_hash(b))
       {
-        LOG_PRINT_L0("Block found but, seems that reorganize just happened after that, do not relay this block");
+        LOG_PRINT_L1("Block found but, seems that reorganize just happened after that, do not relay this block");
         return true;
       }
       CHECK_AND_ASSERT_MES(txs.size() == b.tx_hashes.size() && !missed_txs.size(), false, "can't find some transactions in found block:" << get_block_hash(b) << " txs.size()=" << txs.size()
         << ", b.tx_hashes.size()=" << b.tx_hashes.size() << ", missed_txs.size()" << missed_txs.size());
-
 
       block_to_blob(b, arg.b.block);
       //pack transactions
@@ -1409,7 +1405,6 @@ namespace cryptonote
 
       m_pprotocol->relay_block(arg, exclude_context);
     }
-    else LOG_PRINT_L0("bvc.m_added_to_main_chain=false");
     return bvc.m_added_to_main_chain;
   }
   //-----------------------------------------------------------------------------------------------

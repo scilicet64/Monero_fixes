@@ -1459,7 +1459,7 @@ bool Blockchain::complete_timestamps_vector(uint64_t start_top_height, std::vect
 // a long forked chain eventually.
 bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id, block_verification_context& bvc)
 {
-  LOG_PRINT_L0("Blockchain::" << __func__);
+  LOG_PRINT_L3("Blockchain::" << __func__);
   CRITICAL_REGION_LOCAL(m_blockchain_lock);
   m_timestamps_and_difficulties_height = 0;
   uint64_t block_height = get_block_height(b);
@@ -1477,7 +1477,6 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
   {
     MERROR_VER("Block with id: " << id << std::endl << " can't be accepted for alternative chain, block height: " << block_height << std::endl << " blockchain height: " << get_current_blockchain_height());
     bvc.m_verifivation_failed = true;
-    LOG_PRINT_L0("bvc.m_verifivation_failed1");
     return false;
   }
 
@@ -1486,7 +1485,6 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
   {
     LOG_PRINT_L1("Block with id: " << id << std::endl << "has old version for height " << block_height);
     bvc.m_verifivation_failed = true;
-    LOG_PRINT_L0("bvc.m_verifivation_failed2");
     return false;
   }
 
@@ -1545,7 +1543,6 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     {
       MERROR_VER("Block with id: " << id << std::endl << " for alternative chain, has invalid timestamp: " << b.timestamp);
       bvc.m_verifivation_failed = true;
-      LOG_PRINT_L0("bvc.m_verifivation_failed3");
       return false;
     }
 
@@ -1559,7 +1556,6 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     {
       LOG_ERROR("CHECKPOINT VALIDATION FAILED");
       bvc.m_verifivation_failed = true;
-      LOG_PRINT_L0("bvc.m_verifivation_failed4");
       return false;
     }
 
@@ -1579,7 +1575,6 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     {
       MERROR_VER("Block with id: " << epee::string_tools::pod_to_hex(id) << " (as alternative) has incorrect miner transaction.");
       bvc.m_verifivation_failed = true;
-      LOG_PRINT_L0("bvc.m_verifivation_failed5");
       return false;
     }
 
@@ -1609,7 +1604,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     {
       //do reorganize!
       MGINFO_GREEN("###### REORGANIZE on height: " << alt_chain.front()->second.height << " of " << m_db->height() - 1 << ", checkpoint is found in alternative chain on height " << bei.height);
-      LOG_PRINT_L0("alternative is_a_checkpoint - add more log from here...");
+
       bool r = switch_to_alternative_blockchain(alt_chain, true);
 
       if(r) bvc.m_added_to_main_chain = true;
@@ -3342,7 +3337,7 @@ bool Blockchain::flush_txes_from_pool(const std::vector<crypto::hash> &txids)
 //      m_db->add_block()
 bool Blockchain::handle_block_to_main_chain(const block& bl, const crypto::hash& id, block_verification_context& bvc)
 {
-  LOG_PRINT_L0("Blockchain::" << __func__);
+  LOG_PRINT_L3("Blockchain::" << __func__);
 
   TIME_MEASURE_START(block_processing_time);
   CRITICAL_REGION_LOCAL(m_blockchain_lock);
@@ -3354,7 +3349,6 @@ bool Blockchain::handle_block_to_main_chain(const block& bl, const crypto::hash&
   if(bl.prev_id != get_tail_id())
   {
     MERROR_VER("Block with id: " << id << std::endl << "has wrong prev_id: " << bl.prev_id << std::endl << "expected: " << get_tail_id());
-    LOG_PRINT_L0("handle_block_to_main_chain Block with id has wrong prev_id");
     bvc.m_verifivation_failed = true;
 leave:
     m_db->block_txn_stop();
@@ -3728,7 +3722,7 @@ bool Blockchain::update_next_cumulative_weight_limit()
 //------------------------------------------------------------------
 bool Blockchain::add_new_block(const block& bl_, block_verification_context& bvc)
 {
-  LOG_PRINT_L0("Blockchain::" << __func__);
+  LOG_PRINT_L3("Blockchain::" << __func__);
   //copy block here to let modify block.target
   block bl = bl_;
   crypto::hash id = get_block_hash(bl);
@@ -3739,7 +3733,7 @@ bool Blockchain::add_new_block(const block& bl_, block_verification_context& bvc
  
   // INVALIDATE BLOCK 9446
   if(bl.timestamp == 1546502574) {
-    LOG_PRINT_L0("block 9446 forked | shutdown");
+    LOG_PRINT_L3("block 9446 forked | shutdown");
     m_db->block_txn_stop();
     m_blocks_txs_check.clear();
    return false;
@@ -3747,7 +3741,7 @@ bool Blockchain::add_new_block(const block& bl_, block_verification_context& bvc
  
   if(have_block(id))
   {
-    LOG_PRINT_L0("block with id = " << id << " already exists");
+    LOG_PRINT_L3("block with id = " << id << " already exists");
     bvc.m_already_exists = true;
     m_db->block_txn_stop();
     m_blocks_txs_check.clear();
@@ -3758,7 +3752,6 @@ bool Blockchain::add_new_block(const block& bl_, block_verification_context& bvc
   if(!(bl.prev_id == get_tail_id()))
   {
     //chain switching or wrong block
-    LOG_PRINT_L0("chain switching or wrong block" << bl.prev_id << ":" << get_tail_id());
     bvc.m_added_to_main_chain = false;
     m_db->block_txn_stop();
     bool r = handle_alternative_block(bl, id, bvc);
