@@ -1,5 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
-// Copyright (c)      2018, The SevaBit Project
+// Copyright (c) 2018, The Sevabit Project
 // 
 // All rights reserved.
 // 
@@ -27,6 +26,16 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#pragma once
+#ifndef SEVABIT_H
+#define SEVABIT_H
 
-double sevabit_exp2(double);
+#include <string>
+
+namespace sevabit
+{
+double      round           (double);
+double      exp2            (double);
+std::string hex64_to_base32z(std::string const& src);
+}; // namespace Sevabit
+
+#endif // SEVABIT_H
